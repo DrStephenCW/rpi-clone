@@ -1730,10 +1730,17 @@ qecho ""
 # Fix PARTUUID or device name references in cmdline.txt and fstab
 #
 fstab=${clone}/etc/fstab
-cmdline_txt=${clone}/boot/cmdline.txt
-if [ ! -f $cmdline_txt ] && [ -f ${clone}/boot/firmware/cmdline.txt ]
+
+# On Bookworm and later, the real cmdline.txt lives at /boot/firmware/cmdline.txt.
+# The legacy path /boot/cmdline.txt still exists on these systems, but only as a
+# decoy stub file containing a "moved, do not edit" warning - it is NOT read by
+# the bootloader. Checking for it with a plain [ -f ] test finds this decoy and
+# silently skips the real file, so the firmware path must be checked first.
+if [ -f ${clone}/boot/firmware/cmdline.txt ]
 then
         cmdline_txt=${clone}/boot/firmware/cmdline.txt
+else
+        cmdline_txt=${clone}/boot/cmdline.txt
 fi
 
 if [ -f $cmdline_txt ]
